@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t rashidev/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run rashidev/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t rashidev/multi-client ./client
+  - docker build -t rashidev/multi-nginx ./nginx
+  - docker build -t rashidev/multi-server ./server
+  - docker build -t rashidev/multi-worker ./worker
+# Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# Take those images and push the, to docker hub
+  - docker push rashidev/multi-client
+  - docker push rashidev/multi-nginx
+  - docker push rashidev/multi-server
+  - docker push rashidev/multi-worker
